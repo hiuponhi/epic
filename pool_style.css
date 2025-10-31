@@ -1,0 +1,114 @@
+@import url("https://fonts.googleapis.com/css2?family=Antonio&display=swap");
+body,
+html {
+  height: 100%;
+  display: grid;
+  font-family: "Antonio", sans-serif;
+}
+
+.sign {
+  margin: auto;
+  padding: 0.5rem;
+  box-shadow: 0 0 0 0.75rem #6a2535;
+  background: #fef7e7;
+}
+.sign header {
+  overflow: hidden;
+  border: 0.25rem solid #6a2535;
+  border-bottom: 0;
+  position: relative;
+  z-index: 0;
+}
+.sign header h1 {
+  background: #ff6b3c;
+  transform: skew(0deg, -15deg);
+  padding: 5rem 0.5rem 0.5rem;
+  margin: -3.25rem 0 3.25rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 5rem;
+  line-height: 5rem;
+  color: #fff;
+  border-bottom: 0.25rem solid #6a2535;
+}
+.sign main {
+  position: relative;
+  z-index: 1;
+  border-left: 0.25rem solid #6a2535;
+  border-right: 0.25rem solid #6a2535;
+  padding-top: 6rem;
+  margin-top: -6rem;
+}
+.sign main ol {
+  display: grid;
+  padding-left: 0;
+  list-style: none;
+  margin: 0;
+}
+.sign main li {
+  counter-increment: inst;
+  display: flex;
+  gap: 1rem;
+  font-size: 2rem;
+  padding: 1rem 1rem;
+  font-weight: 100;
+}
+.sign main li:nth-child(even) {
+  background: #ff6b3c;
+}
+.sign main li:nth-child(even):before {
+  box-shadow: 0.3rem 0.3rem 0 0 #fef7e7;
+}
+.sign main li:before {
+  content: counter(inst);
+  width: 2.5rem;
+  height: 2.5rem;
+  line-height: 1.5rem;
+  display: flex;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+  background: #6a2535;
+  box-shadow: 0.3rem 0.3rem 0 0 #ff6b3c;
+  color: #fff;
+  left: 0;
+  top: 0;
+}
+.sign footer {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 10rem;
+  background: #ff6b3c;
+  padding-top: 2rem;
+  margin-top: -2rem;
+  border-right: 0.25rem solid #6a2535;
+  border-bottom: 0.25rem solid #6a2535;
+  border-left: 0.25rem solid #6a2535;
+}
+.sign footer h2 {
+  position: absolute;
+  top: 2rem;
+  width: 100%;
+  padding: 0.5rem 0 0.75rem;
+  text-align: center;
+  background: #6a2535;
+  color: #fff;
+  border-bottom: 10rem solid #fef7e7;
+  transform: skew(0deg, -15deg);
+  z-index: 2;
+}
+.sign footer h3 {
+  position: relative;
+  z-index: 3;
+  margin: 0;
+  background: #fef7e7;
+  padding: 0.5rem;
+  display: inline-flex;
+  color: #6a2535;
+  font-size: 1rem;
+  border: 0.25rem solid #6a2535;
+  border-bottom: 0;
+}
