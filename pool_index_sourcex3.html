@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Pool Rules</title>
+  <link rel="stylesheet" href="./pool_style.css" />
+
+</head>
+
+<body>
+  <div class="sign">
+    <header>
+      <h1>Pool Rules</h1>
+    </header>
+    <main>
+      <ol>
+        <li>No Food, Drinks, or Glass</li>
+        <li>No Running</li>
+        <li>No Animals</li>
+        <li>No Diving</li>
+      </ol>
+    </main>
+    <footer>
+      <h2>No Lifeguard On Duty</h2>
+      <h3>Swim at your own risk</h3>
+    </footer>
+  </div>
+
+<button id="saveBtn">Сохранить в PNG с высоким разрешением</button>
+
+<script>
+  function loadScript(src, onSuccess, onError) {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = onSuccess;
+    s.onerror = onError;
+    document.head.appendChild(s);
+  }
+  // Последовательно пытаемся загрузить скрипты
+  loadScript(
+    'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+    () => console.log('Загружен jsDelivr'),
+    () => {
+      loadScript(
+        'https://cdn.jsdelivr.net/gh/hiuponhi/epic@main/html2canvas.min.js',
+        () => console.log('Загружен резервный CDN'),
+        () => {
+          loadScript(
+            'html2canvas.min.js',
+            () => console.log('Загружен локальный скрипт'),
+            () => console.error('Не удалось загрузить ни один скрипт')
+          );
+        }
+      );
+    }
+  );
+</script>
+
+<script>
+document.getElementById('saveBtn').onclick = () => {
+  const element = document.querySelector('.sign');
+  const desiredWidth = 8640;
+  const scale = desiredWidth / element.offsetWidth;
+  
+  html2canvas(element, { scale: scale }).then(canvas => {
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = '8K.png';
+    link.click();
+  });
+};
+</script>
+
+
+
+</body>
+
+</html>
