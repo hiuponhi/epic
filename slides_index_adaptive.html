@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Адаптивная карточка с сохранением пропорций</title>
+<link rel="stylesheet" href="https://public.codepenassets.com/css/reset-2.0.min.css">
+<style>
+  :root {
+    --card-height: 100vh;
+    --proportion: 1.5;
+    --card-width: calc(var(--card-height) / var(--proportion));
+  }
+
+  body {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .card{
+    flex: 0 0 var(--card-width);
+    height: var(--card-height);
+    box-sizing: border-box;
+    border: 5px solid black;
+  }
+
+  .red { background-color: #f44336; }
+  .orange { background-color: #ff9800; }
+  .yellow { background-color: #ffeb3b; }
+  .green { background-color: #4caf50; }
+  .blue { background-color: #2196f3; }
+  .indigo { background-color: #3f51b5; color: #fff; }
+  .violet { background-color: #9c27b0; }
+
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <header>Заголовок</header>
+  <main>
+    <div class="line red">Строка 1</div>
+    <div class="line orange">Строка 2</div>
+    <div class="line yellow">Строка 3</div>
+    <div class="line green">Строка 4</div>
+    <div class="line blue">Строка 5</div>
+    <div class="line indigo">Строка 6</div>
+    <div class="line violet">Строка 7</div>
+  </main>
+  <footer>Футер</footer>
+</div>
+<div class="card">
+  <header>Заголовок</header>
+  <main>
+    <div class="line red">Строка 1</div>
+    <div class="line orange">Строка 2</div>
+    <div class="line yellow">Строка 3</div>
+    <div class="line green">Строка 4</div>
+    <div class="line blue">Строка 5</div>
+    <div class="line indigo">Строка 6</div>
+    <div class="line violet">Строка 7</div>
+  </main>
+  <footer>Футер</footer>
+</div>
+<div class="card">
+  <header>Заголовок</header>
+  <main>
+    <div class="line red">Строка 1</div>
+    <div class="line orange">Строка 2</div>
+    <div class="line yellow">Строка 3</div>
+    <div class="line green">Строка 4</div>
+    <div class="line blue">Строка 5</div>
+    <div class="line indigo">Строка 6</div>
+    <div class="line violet">Строка 7</div>
+  </main>
+  <footer>Футер</footer>
+</div>
+<div class="card">
+  <header>Заголовок</header>
+  <main>
+    <div class="line red">Строка 1</div>
+    <div class="line orange">Строка 2</div>
+    <div class="line yellow">Строка 3</div>
+    <div class="line green">Строка 4</div>
+    <div class="line blue">Строка 5</div>
+    <div class="line indigo">Строка 6</div>
+    <div class="line violet">Строка 7</div>
+  </main>
+  <footer>Футер</footer>
+</div>
+
+</body>
+
+</html>
