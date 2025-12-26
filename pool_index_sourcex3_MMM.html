@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Адаптивная карточка с сохранением пропорций</title>
+<link rel="stylesheet" href="https://public.codepenassets.com/css/reset-2.0.min.css">
+<style>
+  :root {
+    --card-height: 100vh;
+    --proportion: 1.5;
+    --card-width: calc(var(--card-height) / var(--proportion));
+  }
+
+  body {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .card{
+    flex: 0 1 var(--card-width);
+    height: var(--card-height);
+    box-sizing: border-box;
+    border: 5px solid black;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    overflow: hidden;
+  }
+
+  .card:hover {
+    transform: scale(1.02);
+  }
+
+  @media (max-aspect-ratio: 2/3){
+    .card {
+      height: 150vw;
+    }
+  }
+
+  .red { background-color: #f44336; }
+  .orange { background-color: #ff9800; }
+  .yellow { background-color: #ffeb3b; }
+  .green { background-color: #4caf50; }
+  .blue { background-color: #2196f3; }
+  .indigo { background-color: #3f51b5; color: #fff; }
+  .violet { background-color: #9c27b0; }
+
+  .download-panel {
+    position: absolute;
+    bottom: 10px; left: 10px; right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: white;
+    border: 2px solid #333;
+    border-radius: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 10;
+    pointer-events: none;
+    font-family: Arial, sans-serif;
+    padding: 8px;
+  }
+
+  .card:hover .download-panel {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .current-card-info {
+    text-align: center;
+    padding: 6px 8px;
+    font-weight: bold;
+    color: #333;
+    font-size: 12px;
+    background: #f0f0f0;
+    border-radius: 4px;
+  }
+
+  .download-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-start;
+  }
+
+  .download-btn {
+    padding: 6px 10px;
+    border: 1px solid #333;
+    background: white;
+    color: #333;
+    font-weight: 500;
+    font-size: 11px;
+    cursor: pointer;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    height: 28px;
+    display: flex;
+    align-items: center;
+  }
+
+  .download-single {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    color: #1976d2;
+  }
+
+  .download-all {
+    background: #f3e5f5;
+    border-color: #9c27b0;
+    color: #7b1fa2;
+  }
+</style>
+
+<script id="smart-download-manager">
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. ДАЁМ ID КАРТОЧКАМ + создаём панель
+    document.querySelectorAll('.card').forEach((card, index) => {
+      card.id = `card-${index + 1}`;
+      const panel = document.createElement('div');
+      panel.className = 'download-panel';
+      panel.innerHTML = `
+        <div class="current-card-info">Карточка #${card.id}</div>
+        <div class="download-buttons">
+          <button class="download-btn download-single" data-card="${card.id}">📸 ${card.id} (8K)</button>
+          <button class="download-btn download-all">📦 Все карточки (4K)</button>
+        </div>
+      `;
+      card.appendChild(panel);
+    });
+
+    // 2. ЗАГРУЗКА html2canvas
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    document.head.appendChild(script);
+
+    // 3. КНОПКИ (после html2canvas)
+    script.onload = () => {
+      // Кнопки "эту карточку"
+      document.querySelectorAll('.download-single').forEach(btn => {
+        btn.onclick = async () => {
+          const cardId = btn.dataset.card;
+          const card = document.getElementById(cardId);
+          await saveCard(card, 8640, `${cardId}-8k.png`);
+        };
+      });
+
+      // Кнопки "все карточки"
+      document.querySelectorAll('.download-all').forEach(btn => {
+        btn.onclick = async () => {
+          const cards = document.querySelectorAll('.card');
+          for (let i = 0; i < cards.length; i++) {
+            await saveCard(cards[i], 4320, `card-${i + 1}-4k.png`);
+          }
+        };
+      });
+
+      console.log('✅ Простая hover-логика готова!');
+    };
+  });
+
+  async function saveCard(card, desiredWidth, filename) {
+    const scale = desiredWidth / card.offsetWidth;
+    try {
+      const canvas = await html2canvas(card, { 
+        scale, 
+        useCORS: true, 
+        allowTaint: true,
+        backgroundColor: null
+      });
+      
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = filename;
+      link.click();
+    } catch (e) {
+      console.error('Ошибка сохранения:', e);
+    }
+  }
+</script>
+
+</head>
+
+<body>
+<div class="card">
+  <header>Заголовок</header>
+  <main>
+    <div class="line red">Строка 1</div>
+    <div class="line orange">Строка 2</div>
+    <div class="line yellow">Строка 3</div>
+    <div class="line green">Строка 4</div>
+    <div class="line blue">Строка 5</div>
+    <div class="line indigo">Строка 6</div>
+    <div class="line violet">Строка 7</div>
+  </main>
+  <footer>Футер</footer>
+</div>
+<div class="card">
+  <header>Заголовок</header>
+  <main>
+    <div class="line red">Строка 1</div>
+    <div class="line orange">Строка 2</div>
+    <div class="line yellow">Строка 3</div>
+    <div class="line green">Строка 4</div>
+    <div class="line blue">Строка 5</div>
+    <div class="line indigo">Строка 6</div>
+    <div class="line violet">Строка 7</div>
+  </main>
+  <footer>Футер</footer>
+</div>
+<div class="card">
+  <header>Заголовок</header>
+  <main>
+    <div class="line red">Строка 1</div>
+    <div class="line orange">Строка 2</div>
+    <div class="line yellow">Строка 3</div>
+    <div class="line green">Строка 4</div>
+    <div class="line blue">Строка 5</div>
+    <div class="line indigo">Строка 6</div>
+    <div class="line violet">Строка 7</div>
+  </main>
+  <footer>Футер</footer>
+</div>
+<div class="card">
+  <header>Заголовок</header>
+  <main>
+    <div class="line red">Строка 1</div>
+    <div class="line orange">Строка 2</div>
+    <div class="line yellow">Строка 3</div>
+    <div class="line green">Строка 4</div>
+    <div class="line blue">Строка 5</div>
+    <div class="line indigo">Строка 6</div>
+    <div class="line violet">Строка 7</div>
+  </main>
+  <footer>Футер</footer>
+</div>
+</body>
+</html>
