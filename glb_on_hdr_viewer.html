@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>3D Viewer HDR - 🛠️ МАТОВОСТЬ + ЦВЕТ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; overflow: hidden; 
+            background: #000; font-family: Arial; cursor: grab;
+            position: relative;
+        }
+        body:active { cursor: grabbing; }
+        
+        /* 🆕 ИСПРАВЛЕННАЯ ЛЕВАЯ ЗОНА */
+        .ui-zone {
+            position: absolute; top: 0; left: 0; width: 250px; height: 100%; 
+            z-index: 1000;
+        }
+        
+        #ui { 
+            position: absolute; top: 15px; left: 15px; color: white; 
+            background: rgba(0,0,0,0.95); padding: 15px; border-radius: 8px; 
+            width: 220px; box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            opacity: 0; transform: translateY(-20px); transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        #console { 
+            position: absolute; bottom: 15px; left: 15px; color: #ffd700; 
+            background: rgba(0,0,0,0.9); padding: 10px; border-radius: 6px; 
+            font-family: monospace; font-size: 11px; max-height: 150px; 
+            overflow-y: auto; max-width: 350px; z-index: 1000;
+            opacity: 0; transform: translateY(20px); transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        /* ✅ ИСПРАВЛЕНО: Показ UI при hover зоны */
+        .ui-zone:hover #ui,
+        .ui-zone:hover #console {
+            opacity: 1 !important; 
+            transform: translateY(0) !important;
+            pointer-events: auto !important;
+        }
+        
+        canvas { display: block; background: #1a1a1a !important; }
+        
+        .file-btn, button { 
+            position: relative; display: block; width: 100%; margin: 4px 0; 
+            padding: 8px 6px; border: none; border-radius: 6px; cursor: pointer; 
+            font-weight: 500; font-size: 11px; text-align: center;
+            background: linear-gradient(145deg, #ff8c42, #ff7b00);
+            color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(255,140,66,0.4);
+            transition: all 0.2s ease;
+        }
+        .file-btn:hover, button:hover { 
+            background: linear-gradient(145deg, #fff, #f0f0f0) !important; 
+            color: #333 !important; transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .file-btn input[type=file] {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer;
+        }
+        .slider-container {
+            margin: 4px 0; padding: 6px; background: rgba(255,140,66,0.2);
+            border-radius: 6px; font-size: 10px;
+        }
+        input[type=range] {
+            width: 100%; height: 6px; margin: 2px 0; 
+            background: #444; border-radius: 3px; accent-color: #ffd700;
+        }
+        .slider-label {
+            display: block; font-size: 9px; color: #ffd700; margin-bottom: 2px;
+            text-align: center; font-weight: 500;
+        }
+        .checkbox-container {
+            display: flex; align-items: center; width: 100%; margin: 4px 0; 
+            padding: 8px 6px; border-radius: 6px; cursor: pointer;
+            background: linear-gradient(145deg, #ff8c42, #ff7b00);
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(255,140,66,0.4);
+        }
+        .checkbox-container:hover { 
+            background: linear-gradient(145deg, #ffb366, #ff8c42) !important;
+            transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .checkbox-container input[type=checkbox] {
+            margin-right: 6px; accent-color: #ffd700; width: 16px; height: 16px;
+        }
+        .checkbox-container label {
+            font-size: 11px; font-weight: 500; user-select: none;
+        }
+        .status { 
+            margin-top: 8px; padding: 6px; border-radius: 4px; font-size: 10px; 
+            background: rgba(255,215,0,0.1); color: #ffd700; text-align: center;
+        }
+        h3 { 
+            font-size: 12px; margin: 0 0 10px 0; color: #ffd700; 
+            text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <!-- ✅ ИСПРАВЛЕННАЯ ЛЕВАЯ ЗОНА (250px фиксированная ширина) -->
+    <div class="ui-zone">
+        <div id="ui">
+            <h3>🛠️ МАТОВОСТЬ + ЦВЕТ</h3>
+            
+            <div class="file-btn">📁 GLB
+                <input type="file" id="fileInput" accept=".glb,.gltf" />
+            </div>
+            <div class="file-btn">🌅 HDR
+                <input type="file" id="hdrInput" accept=".hdr,.rgbe" />
+            </div>
+            
+            <button onclick="loadDemoScene()">✨ Demo</button>
+            <button onclick="resetView()">🔄 Сброс</button>
+
+            <div class="slider-container">
+                <span class="slider-label">🎚️ Матовая (0-1)</span>
+                <input type="range" id="roughnessSlider" min="0" max="1" step="0.01" value="0.9">
+            </div>
+            
+            <div class="slider-container">
+                <span class="slider-label">⚙️ Металл (0-1)</span>
+                <input type="range" id="metalnessSlider" min="0" max="1" step="0.01" value="0.02">
+            </div>
+            
+            <div class="slider-container">
+                <span class="slider-label">🎨 Цвет</span>
+                <input type="color" id="colorPicker" value="#E8E8E8">
+            </div>
+
+            <div class="checkbox-container">
+                <input type="checkbox" id="hdrBackground" checked onchange="toggleHDRBackground()">
+                <label for="hdrBackground">🌅 Фон</label>
+            </div>
+
+            <div style="margin-top: 8px;">
+                <button onclick="toggleAutoRotate()">
+                    🔄<br><small id="rotateStatus">Камера</small>
+                </button>
+                <button onclick="toggleHDRLighting()">
+                    ☀️<br><small id="hdrStatus">Объект Y</small>
+                </button>
+            </div>
+
+            <div id="info" class="status">Наведи в левую зону → UI</div>
+        </div>
+        <div id="console"></div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        let scene, camera, renderer, controls, gltfLoader, rgbeLoader, currentModel = null;
+        let backgroundMesh = null, rotatingEnvGroup = null;
+        let isHDRBackgroundVisible = true;
+        let autoRotateEnabled = false;
+        let modelRotationEnabled = false;
+        const modelRotationSpeed = 0.01;
+        let modelAngle = 0;
+
+        let materialParams = {
+            roughness: 0.9,
+            metalness: 0.02,
+            color: 0xE8E8E8
+        };
+
+        const log = (msg) => {
+            const con = document.getElementById('console');
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            con.innerHTML += `<div>[${time}] ${msg}</div>`;
+            con.scrollTop = con.scrollHeight;
+            console.log(msg);
+        };
+
+        log('🚀 Запуск с исправленной зоной...');
+
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
+        
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(0, 2, 8);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x1a1a1a, 1);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.maxPolarAngle = Math.PI / 1.8;
+        controls.autoRotateSpeed = 2.0;
+        controls.autoRotate = false;
+
+        gltfLoader = new GLTFLoader();
+        rgbeLoader = new RGBELoader();
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        pmremGenerator.compileEquirectangularShader();
+
+        rotatingEnvGroup = new THREE.Group();
+        scene.add(rotatingEnvGroup);
+
+        const sphereGeometry = new THREE.SphereGeometry(1000, 64, 64);
+
+        rgbeLoader.load('https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloppenheim_06_puresky_1k.hdr', 
+            function (texture) {
+                const fixedEnvMap = pmremGenerator.fromEquirectangular(texture).texture;
+                scene.environment = fixedEnvMap;
+
+                const bgMaterial = new THREE.MeshBasicMaterial({ 
+                    map: texture, 
+                    side: THREE.BackSide 
+                });
+                backgroundMesh = new THREE.Mesh(sphereGeometry, bgMaterial);
+                rotatingEnvGroup.add(backgroundMesh);
+
+                log('✅ HDR готов');
+            });
+
+        window.updateAllMaterials = function() {
+            if (!currentModel) return;
+            currentModel.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    child.material.roughness = materialParams.roughness;
+                    child.material.metalness = materialParams.metalness;
+                    child.material.color.setHex(materialParams.color);
+                    child.material.needsUpdate = true;
+                }
+            });
+            log(`🎚️ R:${materialParams.roughness.toFixed(1)} M:${materialParams.metalness.toFixed(1)} C:#${materialParams.color.toString(16).padStart(6,'0')}`);
+        };
+
+        // СЛАЙДЕРЫ
+        document.getElementById('roughnessSlider').addEventListener('input', (e) => {
+            materialParams.roughness = parseFloat(e.target.value);
+            updateAllMaterials();
+        });
+        document.getElementById('metalnessSlider').addEventListener('input', (e) => {
+            materialParams.metalness = parseFloat(e.target.value);
+            updateAllMaterials();
+        });
+        document.getElementById('colorPicker').addEventListener('input', (e) => {
+            materialParams.color = parseInt(e.target.value.substr(1), 16);
+            updateAllMaterials();
+        });
+
+        window.toggleHDRBackground = function() {
+            isHDRBackgroundVisible = document.getElementById('hdrBackground').checked;
+            if (backgroundMesh) {
+                backgroundMesh.visible = isHDRBackgroundVisible;
+                log(isHDRBackgroundVisible ? '🌅 Фон ВКЛ' : '🙈 Фон ВЫКЛ');
+            }
+        };
+
+        window.loadHDR = function() {
+            const fileInput = document.getElementById('hdrInput');
+            const file = fileInput.files[0];
+            if (!file) return log('⚠️ Выберите HDR');
+            const url = URL.createObjectURL(file);
+            rgbeLoader.load(url, function(texture) {
+                const fixedEnvMap = pmremGenerator.fromEquirectangular(texture).texture;
+                scene.environment = fixedEnvMap;
+                if (backgroundMesh) backgroundMesh.material.map = texture;
+                URL.revokeObjectURL(url);
+                log('✅ Ваш HDR');
+            });
+        };
+
+        window.loadDemoScene = function() {
+            if (currentModel) {
+                scene.remove(currentModel);
+                currentModel.traverse(disposeObject);
+            }
+
+            const cube = new THREE.Mesh(
+                new THREE.BoxGeometry(1.8, 1.8, 1.8),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x40c4ff,
+                    metalness: 1.0,
+                    roughness: 0.0,
+                    envMapIntensity: 1.0
+                })
+            );
+            cube.position.set(-2, 1, 0);
+
+            const sphereModel = new THREE.Mesh(
+                new THREE.SphereGeometry(1.2, 128, 128),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xff6b6b,
+                    metalness: 1.0,
+                    roughness: 0.0,
+                    envMapIntensity: 1.0
+                })
+            );
+            sphereModel.position.set(2, 1, 0);
+
+            currentModel = new THREE.Group();
+            currentModel.add(cube, sphereModel);
+            scene.add(currentModel);
+            autoCenterModel();
+            document.getElementById('info').textContent = '✨ Глянец готов | Наведи слева';
+            log('✅ Demo');
+        };
+
+        function disposeObject(obj) {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material && obj.material.map) obj.material.map.dispose();
+            if (obj.material) obj.material.dispose();
+        }
+
+        function autoCenterModel() {
+            if (!currentModel) return;
+            const box = new THREE.Box3().setFromObject(currentModel);
+            const center = box.getCenter(new THREE.Vector3());
+            currentModel.position.sub(center);
+            const maxDim = Math.max(...box.getSize(new THREE.Vector3()).toArray()) || 1;
+            const fov = camera.fov * (Math.PI / 180);
+            camera.position.z = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 2.5;
+            controls.target.copy(center);
+            controls.update();
+        }
+
+        function loadModel(file) {
+            const info = document.getElementById('info');
+            info.textContent = `Загрузка...`;
+            const url = URL.createObjectURL(file);
+            gltfLoader.load(url, (gltf) => {
+                if (currentModel) {
+                    scene.remove(currentModel);
+                    currentModel.traverse(disposeObject);
+                }
+                currentModel = gltf.scene;
+                
+                currentModel.traverse((child) => {
+                    if (child.isMesh && child.material) {
+                        child.material.roughness = materialParams.roughness;
+                        child.material.metalness = materialParams.metalness;
+                        child.material.color.setHex(materialParams.color);
+                        child.material.needsUpdate = true;
+                    }
+                });
+                
+                scene.add(currentModel);
+                autoCenterModel();
+                URL.revokeObjectURL(url);
+                info.textContent = '🛠️ Матовая+Металл+Цвет';
+                log('✅ Загружено с контролями');
+            });
+        }
+
+        window.toggleAutoRotate = () => {
+            autoRotateEnabled = !autoRotateEnabled;
+            controls.autoRotate = autoRotateEnabled;
+            document.getElementById('rotateStatus').textContent = autoRotateEnabled ? 'вкл' : 'Камера';
+        };
+
+        window.toggleHDRLighting = () => {
+            modelRotationEnabled = !modelRotationEnabled;
+            document.getElementById('hdrStatus').textContent = modelRotationEnabled ? 'вкл' : 'Объект Y';
+            log(modelRotationEnabled ? '☀️ Модель вращается' : '☀️ Модель стоит');
+        };
+
+        window.resetView = () => {
+            camera.position.set(0, 2, 10);
+            controls.target.set(0, 1, 0);
+            controls.update();
+            log('🔄 Сброс');
+        };
+
+        ['dragover', 'dragenter'].forEach(e => document.body.addEventListener(e, e => e.preventDefault()));
+        document.body.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && /\.(glb|gltf)$/i.test(file.name)) loadModel(file);
+        });
+        
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) loadModel(file);
+        });
+        document.getElementById('hdrInput').addEventListener('change', () => loadHDR());
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            if (modelRotationEnabled && currentModel) {
+                modelAngle += modelRotationSpeed;
+                currentModel.rotation.y = modelAngle;
+            }
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        loadDemoScene();
+        log('✅ ИСПРАВЛЕНО! Наведи в левую часть экрана (250px)');
+    </script>
+</body>
+</html>
